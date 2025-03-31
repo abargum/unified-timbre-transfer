@@ -31,10 +31,10 @@ pip install torch-pitch-shift torchfcpe mpl-tools julius wandb
 ```bash
 unified-timbre-transfer/
 │── data/
-│   ├── Instrument1/
+│   ├── Instrument_1/
 │       ├── audio1.wav
 │       ├── audio2.wav
-│   ├── Instrument8/
+│   ├── Instrument_n/
 │       ├── audio1.wav
 │       ├── audio2.wav
 ```
@@ -76,4 +76,4 @@ python train.py --config rave/configs/base_config.gin \
 
 ## Inference
 
-Run the inference script in `inference.ipynb`. Download pre-trained models from: **[link placeholder]**.
+For inference run the script in `inference.ipynb`. Download pre-trained models from: **[link placeholder]**.
