@@ -120,7 +120,7 @@ def create_test_set(chunks_dir, test_dir, num_samples=2, min_length=3.0, max_len
                     shutil.copy(sample, dest_path)
                     print(f"Added to test set: {dest_path}")
 
-def process_audio_directory(base_dir, output_directory, test_directory=None,
+def process_audio_directory(base_dir, output_directory, test_directory=None, num_samples=2,
                            silence_threshold=-23, silence_duration=4.0,
                            min_chunk_duration=2.0, max_chunk_duration=30.0):
     if not os.path.exists(output_directory):
@@ -148,13 +148,14 @@ def process_audio_directory(base_dir, output_directory, test_directory=None,
                               max_segment_length=max_chunk_duration)
     if test_directory:
         print("\nCreating test set...")
-        create_test_set(output_directory, test_directory)
+        create_test_set(output_directory, test_directory, num_samples=num_samples)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process audio files and create a dataset.")
     parser.add_argument("--base_dir", type=str, help="Path to the base directory containing audio files.")
     parser.add_argument("--training_dir", type=str, default="train-set", help="Path to the training dataset directory.")
     parser.add_argument("--test_dir", type=str, default="test-set", help="Path to the test dataset output directory.")
+    parser.add_argument("--num_samples", type=int, default=2, help="Number of samples per instrument to include in test set.")
     parser.add_argument("--silence_threshold", type=float, default=-23, help="Silence detection threshold in dB (default: -23).")
     parser.add_argument("--silence_duration", type=float, default=4.0, help="Minimum silence duration in seconds (default: 4.0).")
     parser.add_argument("--min_chunk_duration", type=float, default=2.0, help="Minimum chunk duration in seconds (default: 2.0).")
