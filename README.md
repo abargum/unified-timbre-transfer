@@ -68,7 +68,6 @@ python train.py --config rave/configs/base_config.gin \
 
 ### Key Training Parameters (base-config.gin):
 
-- **PHASE_1_DURATION**: Steps for warm-up
 - **with_augmentation**: Enable data augmentation
 - **with_pitch_loss**: Train pitch encoder
 - **load_pitch_enc**: Load pre-trained pitch encoder
@@ -77,3 +76,24 @@ python train.py --config rave/configs/base_config.gin \
 ## Inference
 
 For inference run the script in `inference.ipynb`. Download pre-trained models from: **[link placeholder]**.
+
+## Evaluation
+
+Evaluation results similar to those in the paper can be produced using the scripts in the [evaluation](evaluation/) folder.
+
+- First install basic-pitch:
+```bash
+cd evalution 
+python data-utils/remove_silence_and_chunk.py --base_dir /path/to/audio --num_samples X
+```
+
+- Then install remaining dependencies:
+```bash
+pip install cdpam
+pip install frechet_audio_distance
+```
+
+Run the desired evaluation script:
+```bash
+python evaluation/ablation_metrics_rec.py
+```
