@@ -59,7 +59,11 @@ unified-timbre-transfer/
 Train a causal model with:
 
 ```bash
-python train.py --config rave/configs/base_config.gin                 --config rave/configs/causal.gin                 --db_path_train /path/to/preprocessed-train-data                 --db_path_test /path/to/preprocessed-test-data                 --out_path runs --name "experiment_name" --channels 1 --gpu 0
+python train.py --config rave/configs/base_config.gin \
+                --config rave/configs/causal.gin \
+                --db_path_train /path/to/preprocessed-train-data \
+                --db_path_test /path/to/preprocessed-test-data \
+                --out_path runs --name "experiment_name" --channels 1 --gpu 0
 ```
 
 ### Key Training Parameters (base-config.gin):
