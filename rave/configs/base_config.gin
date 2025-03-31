@@ -120,6 +120,7 @@ rave.RAVE:
         }
     with_pitch_loss = True
     with_augmentation = False
+    load_pitch_enc = False
 
 rave.BetaWarmupCallback:
     initial_value = 1e-6

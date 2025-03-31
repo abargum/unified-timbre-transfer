@@ -184,7 +184,8 @@ class RAVE(pl.LightningModule):
         is_mel_input: Optional[bool] = None,
         loss_weights = None,
         with_pitch_loss = False,
-        with_augmentation = False
+        with_augmentation = False,
+        load_pitch_enc = False
     ):
         super().__init__()
         self.pqmf = pqmf(n_channels=n_channels)
@@ -242,6 +243,7 @@ class RAVE(pl.LightningModule):
         
         self.with_pitch_loss = with_pitch_loss
         self.with_augmentation = with_augmentation
+        self.load_pitch_enc = load_pitch_enc
 
         self.eval_number = 0
         self.beta_factor = 0.2
@@ -253,7 +255,7 @@ class RAVE(pl.LightningModule):
         self.step = 0
         self.block_size = 2048
 
-        if not self.with_pitch_loss:
+        if self.load_pitch_enc:
             self.pitch_encoder.load_state_dict(torch.load(f"rave/utils/noncaus2048_mb6.pth", weights_only=True))
             self.pitch_encoder.eval()
             

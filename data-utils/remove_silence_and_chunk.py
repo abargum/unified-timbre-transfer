@@ -152,12 +152,12 @@ def process_audio_directory(base_dir, output_directory, test_directory=None,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process audio files and create a dataset.")
-    parser.add_argument("--base_directory", type=str, help="Path to the base directory containing audio files.")
-    parser.add_argument("--training_directory", type=str, default="train-set", help="Path to the training dataset directory.")
-    parser.add_argument("--test_directory", type=str, default="test-set", help="Path to the test dataset output directory.")
+    parser.add_argument("--base_dir", type=str, help="Path to the base directory containing audio files.")
+    parser.add_argument("--training_dir", type=str, default="train-set", help="Path to the training dataset directory.")
+    parser.add_argument("--test_dir", type=str, default="test-set", help="Path to the test dataset output directory.")
     parser.add_argument("--silence_threshold", type=float, default=-23, help="Silence detection threshold in dB (default: -23).")
     parser.add_argument("--silence_duration", type=float, default=4.0, help="Minimum silence duration in seconds (default: 4.0).")
     parser.add_argument("--min_chunk_duration", type=float, default=2.0, help="Minimum chunk duration in seconds (default: 2.0).")
     parser.add_argument("--max_chunk_duration", type=float, default=30.0, help="Maximum chunk duration in seconds (default: 30.0).")
     args = parser.parse_args()
-    process_audio_directory(args.base_directory, args.training_directory, args.test_directory, args.silence_threshold, args.silence_duration, args.min_chunk_duration, args.max_chunk_duration)
+    process_audio_directory(args.base_dir, args.training_dir, args.test_dir, args.silence_threshold, args.silence_duration, args.min_chunk_duration, args.max_chunk_duration)
