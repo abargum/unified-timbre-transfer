@@ -53,7 +53,7 @@ unified-timbre-transfer/
    ```
    - Preprocess audio:
    ```bash
-   python scripts/preprocess --input_path /audio/folder/ --output_path /dataset/path/ --channels 1 --lazy
+   python scripts/preprocess.py --input_path /audio/folder/ --output_path /dataset/path/ --channels 1 --lazy
    ```
 
 ## Training
