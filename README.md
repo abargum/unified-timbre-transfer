@@ -32,11 +32,13 @@ pip install torch-pitch-shift torchfcpe mpl-tools julius wandb
 unified-timbre-transfer/
 │── data/
 │   ├── Instrument_1/
-│       ├── audio1.wav
-│       ├── audio2.wav
+│         ├── audio1.wav
+│         ├── audio2.wav
+│   ...
+│
 │   ├── Instrument_n/
-│       ├── audio1.wav
-│       ├── audio2.wav
+│         ├── audio1.wav
+│         ├── audio2.wav
 ```
 
 2. **Modify instrument classes** in `rave/utils/perceptive.py` and `rave/model.py` to match your dataset.
@@ -71,11 +73,11 @@ python train.py --config rave/configs/base_config.gin \
 - **with_augmentation**: Enable data augmentation
 - **with_pitch_loss**: Train pitch encoder
 - **load_pitch_enc**: Load pre-trained pitch encoder
-- **streaming**: Enable streaming (set `True` after training for causal models)
+- **streaming**: Enable streaming (set to `True` AFTER training of causal models)
 
 ## Inference
 
-For inference run the script in `inference.ipynb`. Download pre-trained models from: **[link placeholder]**.
+For inference experiments with the script in `inference.ipynb`. The pre-trained models can be downloaded from: **[link placeholder]**.
 
 ## Evaluation
 
@@ -93,7 +95,8 @@ pip install cdpam
 pip install frechet_audio_distance
 ```
 
-Run the desired evaluation script:
+- Run the desired evaluation scripts:
 ```bash
 python evaluation/ablation_metrics_rec.py
+python evaluation/ablation_metrics_tt.py
 ```
