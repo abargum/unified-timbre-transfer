@@ -86,7 +86,7 @@ Evaluation results similar to those in the paper can be produced using the scrip
 - First install basic-pitch:
 ```bash
 cd evalution 
-python data-utils/remove_silence_and_chunk.py --base_dir /path/to/audio --num_samples X
+git clone https://github.com/gudgud96/basic-pitch-torch.git
 ```
 
 - Then install remaining dependencies:
