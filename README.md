@@ -77,7 +77,7 @@ python train.py --config rave/configs/base_config.gin \
 
 ## Inference
 
-For inference experiments with the script in `inference.ipynb`. The pre-trained models can be downloaded from: [models](https://drive.google.com/drive/folders/1-JXWJCOnS6bK5ZgBjA6LIErZ8tqMwYjo?usp=drive_link).
+For inference, experiment with the script in `inference.ipynb`. Create and place the pre-trained model folders in "pretrained" or change the path in the script. The pre-trained model weights can be downloaded from: [models](https://drive.google.com/drive/folders/1-JXWJCOnS6bK5ZgBjA6LIErZ8tqMwYjo?usp=drive_link).
 
 ## Evaluation
 
