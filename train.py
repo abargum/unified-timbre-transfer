@@ -10,24 +10,22 @@ from absl import flags, app
 from torch.utils.data import DataLoader
 
 try:
-    import rave
+    import raveish
 except:
     import sys, os 
     sys.path.append(os.path.abspath('.'))
-    import rave
+    import raveish
 
-import rave.core
-import rave.dataset
-from rave.transforms import get_augmentations, add_augmentation
-import wandb
-
+import raveish.core
+import raveish.dataset
+from raveish.transforms import get_augmentations, add_augmentation
 
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('name', None, help='Name of the run', required=True)
 flags.DEFINE_multi_string('config',
                           default='v2.gin',
-                          help='RAVE configuration to use')
+                          help='configuration to use')
 flags.DEFINE_multi_string('augment',
                            default = [],
                             help = 'augmentation configurations to use')
@@ -64,10 +62,10 @@ flags.DEFINE_integer('workers',
 flags.DEFINE_multi_integer('gpu', default=None, help='GPU to use')
 flags.DEFINE_bool('derivative',
                   default=False,
-                  help='Train RAVE on the derivative of the signal')
+                  help='Train on the derivative of the signal')
 flags.DEFINE_bool('normalize',
                   default=False,
-                  help='Train RAVE on normalized signals')
+                  help='Train on normalized signals')
 flags.DEFINE_list('rand_pitch',
                   default=None,
                   help='activates random pitch')
@@ -136,15 +134,13 @@ def parse_augmentations(augmentations):
     return get_augmentations()
 
 def main(argv):
-
-    wandb.init(project="RAVEtone", name=f"{FLAGS.name}")
     
     torch.set_float32_matmul_precision('high')
     torch.backends.cudnn.benchmark = True
 
     # check dataset channels
-    n_channels = rave.dataset.get_training_channels(FLAGS.db_path_train, FLAGS.channels)
-    gin.bind_parameter('RAVE.n_channels', n_channels)
+    n_channels = raveish.dataset.get_training_channels(FLAGS.db_path_train, FLAGS.channels)
+    gin.bind_parameter('UNIFIED_TT.n_channels', n_channels)
 
     # parse augmentations
     augmentations = parse_augmentations(map(add_gin_extension, FLAGS.augment))
@@ -152,7 +148,7 @@ def main(argv):
 
     # parse configuration
     if FLAGS.ckpt:
-        config_file = rave.core.search_for_config(FLAGS.ckpt)
+        config_file = raveish.core.search_for_config(FLAGS.ckpt)
         if config_file is None:
             print('Config file not found in %s'%FLAGS.run)
         gin.parse_config_file(config_file)
@@ -163,12 +159,12 @@ def main(argv):
         )
 
     # create model
-    model = rave.RAVE(n_channels=FLAGS.channels)
+    model = raveish.UNIFIED_TT(n_channels=FLAGS.channels)
     if FLAGS.derivative:
-        model.integrator = rave.dataset.get_derivator_integrator(model.sr)[1]
+        model.integrator = raveish.dataset.get_derivator_integrator(model.sr)[1]
 
     # parse datasset
-    train = rave.dataset.get_dataset(FLAGS.db_path_train,
+    train = raveish.dataset.get_dataset(FLAGS.db_path_train,
                                        model.sr,
                                        FLAGS.n_signal,
                                        derivative=FLAGS.derivative,
@@ -176,7 +172,7 @@ def main(argv):
                                        rand_pitch=FLAGS.rand_pitch,
                                        n_channels=n_channels)
 
-    val = rave.dataset.get_dataset(FLAGS.db_path_test,
+    val = raveish.dataset.get_dataset(FLAGS.db_path_test,
                                    model.sr,
                                    FLAGS.n_signal,
                                    derivative=FLAGS.derivative,
@@ -184,8 +180,6 @@ def main(argv):
                                    rand_pitch=FLAGS.rand_pitch,
                                    n_channels=n_channels)
     
-    #train, val = rave.dataset.split_dataset(dataset, 98)
-
     # get data-loader
     num_workers = FLAGS.workers
     if os.name == "nt" or sys.platform == "darwin":
@@ -202,7 +196,7 @@ def main(argv):
     validation_checkpoint = pl.callbacks.ModelCheckpoint(monitor="validation",
                                                          filename="best")
     last_filename = "last" if FLAGS.save_every is None else "epoch-{epoch:04d}"                                                        
-    last_checkpoint = rave.core.ModelCheckpoint(filename=last_filename, step_period=FLAGS.save_every)
+    last_checkpoint = raveish.core.ModelCheckpoint(filename=last_filename, step_period=FLAGS.save_every)
 
     val_check = {}
     if len(train) >= FLAGS.val_every:
@@ -225,7 +219,7 @@ def main(argv):
     if FLAGS.gpu == [-1]:
         gpu = 0
     else:
-        gpu = FLAGS.gpu or rave.core.setup_gpu()
+        gpu = FLAGS.gpu or raveish.core.setup_gpu()
 
     print('selected gpu:', gpu)
 
@@ -235,7 +229,7 @@ def main(argv):
         pass
     elif torch.cuda.is_available():
         accelerator = "cuda"
-        devices = FLAGS.gpu or rave.core.setup_gpu()
+        devices = FLAGS.gpu or raveish.core.setup_gpu()
     elif torch.backends.mps.is_available():
         print(
             "Training on mac is not available yet. Use --gpu -1 to train on CPU (not recommended)."
@@ -247,10 +241,9 @@ def main(argv):
     callbacks = [
         validation_checkpoint,
         last_checkpoint,
-        rave.model.WarmupCallback(),
-        rave.model.QuantizeCallback(),
-        # rave.core.LoggerCallback(rave.core.ProgressLogger(RUN_NAME)),
-        rave.model.BetaWarmupCallback(),
+        raveish.model.WarmupCallback(),
+        raveish.model.QuantizeCallback(),
+        raveish.model.BetaWarmupCallback(),
     ]
 
     if FLAGS.ema is not None:
@@ -271,7 +264,7 @@ def main(argv):
         **val_check,
     )
 
-    run = rave.core.search_for_run(FLAGS.ckpt)
+    run = raveish.core.search_for_run(FLAGS.ckpt)
     if run is not None:
         print('loading state from file %s'%run)
         loaded = torch.load(run, map_location='cpu')

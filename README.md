@@ -1,6 +1,10 @@
 # Unified Timbre Transfer
 
-This repository extends the [RAVE pipeline](https://github.com/acids-ircam/RAVE) with features from [Variational Timbre](https://github.com/acids-ircam/variational-timbre) and [PENN](https://github.com/interactiveaudiolab/penn/tree/master). Key additions:
+This repository uses the [RAVE pipeline](https://github.com/acids-ircam/RAVE) as a training baseline and extends it with the contributions from the paper: [Unified Timbre Transfer: A Compact Model for Real-Time Multi-Instrument Sound Morphing]().
+
+It also includes code and inspiration from certain parts of the [Variational Timbre](https://github.com/acids-ircam/variational-timbre) and [PENN](https://github.com/interactiveaudiolab/penn/tree/master) repositories.
+
+Key additions:
 
 - Harmonic sine + noise excitation
 - Extended decoder with double FiLM conditioning
@@ -9,7 +13,7 @@ This repository extends the [RAVE pipeline](https://github.com/acids-ircam/RAVE)
 
 ## Installation
 
-### 1. Install RAVE
+### 1. Install RAVE and its dependencies
 
 ```bash
 pip install acids-rave
@@ -26,7 +30,7 @@ pip install torch-pitch-shift torchfcpe mpl-tools julius wandb
 
 ## Dataset Preparation
 
-1. **Organize your dataset** into instrument folders:
+1. **Organize your dataset** into instrument folders (you will manually have to sort the URMP dataset to match the targets of the paper):
 
 ```bash
 unified-timbre-transfer/
@@ -41,7 +45,7 @@ unified-timbre-transfer/
 │         ├── audio2.wav
 ```
 
-2. **Modify instrument classes** in `rave/utils/perceptive.py` and `rave/model.py` to match your dataset.
+2. **Modify instrument classes** in `raveish/utils/perceptive.py` and `raveish/model.py` to match your dataset or leave as is to follow the procedure from the paper.
 3. **Preprocess data:**
    - Remove silence and split into training/testing sets:
    ```bash
@@ -49,11 +53,12 @@ unified-timbre-transfer/
    ```
    - Extract audio features for normalization:
    ```bash
-   python rave/extract_features.py --base_dir /path/to/audio
+   python data-utils/extract_features.py --base_dir /path/to/audio
    ```
-   - Preprocess audio:
+   - Preprocess train and test audio:
    ```bash
-   python scripts/preprocess.py --input_path /audio/folder/ --output_path /dataset/path/ --channels 1 --lazy
+   python scripts/preprocess.py --input_path train-set/ --output_path train-data/ --channels 1 --lazy
+   python scripts/preprocess.py --input_path test-set/ --output_path test-data/ --channels 1 --lazy
    ```
 
 ## Training
@@ -61,8 +66,8 @@ unified-timbre-transfer/
 Train a causal model with:
 
 ```bash
-python train.py --config rave/configs/base_config.gin \
-                --config rave/configs/causal.gin \
+python train.py --config raveish/configs/base_config.gin \
+                --config raveish/configs/causal.gin \
                 --db_path_train /path/to/preprocessed-train-data \
                 --db_path_test /path/to/preprocessed-test-data \
                 --out_path runs --name "experiment_name" --channels 1 --gpu 0
@@ -77,7 +82,7 @@ python train.py --config rave/configs/base_config.gin \
 
 ## Inference
 
-For inference, experiment with the script in `inference.ipynb`. Create and place the pre-trained model folders in "pretrained" or change the path in the script. The pre-trained model weights can be downloaded from: [models](https://drive.google.com/drive/folders/1-JXWJCOnS6bK5ZgBjA6LIErZ8tqMwYjo?usp=drive_link).
+For inference and live sound examples, run the cells in `inference.ipynb`. Create and place the pre-trained model folders in "pretrained" or change the path in the script. The pre-trained model weights can be downloaded from: [models](https://drive.google.com/drive/folders/1-JXWJCOnS6bK5ZgBjA6LIErZ8tqMwYjo?usp=drive_link).
 
 ## Evaluation
 

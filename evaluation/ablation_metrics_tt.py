@@ -17,11 +17,11 @@ from frechet_audio_distance import FrechetAudioDistance
 
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../rave')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../raveish')))
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, root_dir)
 
-from rave.model import RAVE
+from raveish.model import RAVE
 
 from core import extract_pitch, search_for_run
 
@@ -151,7 +151,7 @@ def load_model(run_path, device):
 
     # Load pitch encoder
     pitch_enc = model.pitch_encoder
-    pitch_enc.load_state_dict(torch.load(f"rave/utils/noncaus2048_mb6.pth", weights_only=True))
+    pitch_enc.load_state_dict(torch.load(f"raveish/utils/noncaus2048_mb6.pth", weights_only=True))
 
     # Test run
     x = torch.rand(1, 1, 2**14, device=device)

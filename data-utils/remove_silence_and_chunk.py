@@ -1,13 +1,10 @@
 import os
-import librosa
 import numpy as np
-import torch
 import random
 import shutil
 import argparse
 from scipy.io.wavfile import read, write
 import subprocess
-import tqdm
 
 def detect_silence(path, time, noise_threshold=-23):
     command = [
@@ -161,4 +158,15 @@ if __name__ == "__main__":
     parser.add_argument("--min_chunk_duration", type=float, default=2.0, help="Minimum chunk duration in seconds (default: 2.0).")
     parser.add_argument("--max_chunk_duration", type=float, default=30.0, help="Maximum chunk duration in seconds (default: 30.0).")
     args = parser.parse_args()
-    process_audio_directory(args.base_dir, args.training_dir, args.test_dir, args.silence_threshold, args.silence_duration, args.min_chunk_duration, args.max_chunk_duration)
+    
+    # Fixed: Pass arguments in correct order
+    process_audio_directory(
+        base_dir=args.base_dir,
+        output_directory=args.training_dir,
+        test_directory=args.test_dir,
+        num_samples=args.num_samples,
+        silence_threshold=args.silence_threshold,
+        silence_duration=args.silence_duration,
+        min_chunk_duration=args.min_chunk_duration,
+        max_chunk_duration=args.max_chunk_duration
+    )

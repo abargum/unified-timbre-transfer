@@ -1,20 +1,28 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../rave')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from core import a_weighted_loudness, extract_pitch
+from raveish.core import a_weighted_loudness, extract_pitch
 
 import os
 import librosa
 import numpy as np
 import pickle
 import torch
-import torch.nn as nn
 import argparse
+
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+elif torch.backends.mps.is_available():
+    device = torch.device('mps')
+else:
+    device = torch.device('cpu')
+
+print("Using device:", device)
 
 def get_features(file_path, sr):
     x, sr = librosa.load(file_path, sr=sr)
-    x = torch.tensor(x).unsqueeze(0).unsqueeze(0).to(torch.device('cuda'))
+    x = torch.tensor(x).unsqueeze(0).unsqueeze(0).to(device)
     loudness = a_weighted_loudness(x, sr, n_fft=2048, block_size=2048, to_linear=False)
     pitch = extract_pitch(x.squeeze(0), sr, 2048)
     pitch = pitch[~torch.isnan(pitch)]
@@ -85,9 +93,12 @@ def process_audio_directory(base_dir, output_path, sample_rate):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process audio files and extract loudness/pitch features.")
     parser.add_argument("--base_dir", type=str, help="Path to the base directory containing audio files.")
-    parser.add_argument("--output_file", type=str, default="src/utils/loudness_stats.pkl", help="Path to save the extracted statistics (pickle file).")
+    parser.add_argument("--output_file", type=str, default="raveish/utils/loudness_stats.pkl", help="Path to save the extracted statistics (pickle file).")
     parser.add_argument("--sample_rate", type=int, default=44100, help="Sample rate for processing audio files (default: 44100).")
 
     args = parser.parse_args()
+
+    if not os.path.exists(args.output_file):
+        os.makedirs(args.output_file)
 
     process_audio_directory(args.base_dir, args.output_file, args.sample_rate)

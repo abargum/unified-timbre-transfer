@@ -22,16 +22,16 @@ from absl import flags, app
 from typing import Union, Optional
 
 try:
-    import rave
+    import raveish
 except:
     import sys, os 
     sys.path.append(os.path.abspath('.'))
-    import rave
+    import raveish
     
-import rave.blocks
-import rave.core
-import rave.resampler
-from rave.prior import model as prior
+import raveish.blocks
+import raveish.core
+import raveish.resampler
+from raveish.prior import model as prior
 
 FLAGS = flags.FLAGS
 
@@ -76,7 +76,7 @@ class DumbPrior(nn.Module):
 class ScriptedRAVE(nn_tilde.Module):
 
     def __init__(self,
-                 pretrained: rave.RAVE,
+                 pretrained: raveish.RAVE,
                  channels: Optional[int] = None,
                  fidelity: float = .95,
                  target_sr: bool = None, 
@@ -96,13 +96,13 @@ class ScriptedRAVE(nn_tilde.Module):
         if target_sr is not None:
             if target_sr != self.sr:
                 assert not target_sr % self.sr, "Incompatible target sampling rate"
-                self.resampler = rave.resampler.Resampler(target_sr, self.sr)
+                self.resampler = raveish.resampler.Resampler(target_sr, self.sr)
                 self.sr = target_sr
 
         self.full_latent_size = pretrained.latent_size
         self.is_using_adain = False
         for m in self.modules():
-            if isinstance(m, rave.blocks.AdaptiveInstanceNormalization):
+            if isinstance(m, raveish.blocks.AdaptiveInstanceNormalization):
                 self.is_using_adain = True
                 break
         if self.is_using_adain and (self.n_channels != self.target_channels):
@@ -117,19 +117,19 @@ class ScriptedRAVE(nn_tilde.Module):
         self.register_buffer("latent_mean", pretrained.latent_mean)
         self.register_buffer("fidelity", pretrained.fidelity)
 
-        if isinstance(pretrained.encoder, rave.blocks.VariationalEncoder):
+        if isinstance(pretrained.encoder, raveish.blocks.VariationalEncoder):
             latent_size = max(
                 np.argmax(pretrained.fidelity.numpy() > fidelity), 1)
             latent_size = 2**math.ceil(math.log2(latent_size))
             self.latent_size = latent_size
 
-        elif isinstance(pretrained.encoder, rave.blocks.DiscreteEncoder):
+        elif isinstance(pretrained.encoder, raveish.blocks.DiscreteEncoder):
             self.latent_size = pretrained.encoder.num_quantizers
 
-        elif isinstance(pretrained.encoder, rave.blocks.WasserteinEncoder):
+        elif isinstance(pretrained.encoder, raveish.blocks.WasserteinEncoder):
             self.latent_size = pretrained.latent_size
 
-        elif isinstance(pretrained.encoder, rave.blocks.SphericalEncoder):
+        elif isinstance(pretrained.encoder, raveish.blocks.SphericalEncoder):
             self.latent_size = pretrained.latent_size - 1
 
         else:
@@ -137,7 +137,7 @@ class ScriptedRAVE(nn_tilde.Module):
                 f'Encoder type {pretrained.encoder.__class__.__name__} not supported'
             )
 
-        self.fake_adain = rave.blocks.AdaptiveInstanceNormalization(0)
+        self.fake_adain = raveish.blocks.AdaptiveInstanceNormalization(0)
 
         # have to init cached conv before graphing
         self.encoder = pretrained.encoder
@@ -213,7 +213,7 @@ class ScriptedRAVE(nn_tilde.Module):
 
     def update_adain(self):
         for m in self.modules():
-            if isinstance(m, rave.blocks.AdaptiveInstanceNormalization):
+            if isinstance(m, raveish.blocks.AdaptiveInstanceNormalization):
                 m.learn_x.zero_()
                 m.learn_y.zero_()
 
@@ -403,14 +403,14 @@ class WasserteinScriptedRAVE(ScriptedRAVE):
 class SphericalScriptedRAVE(ScriptedRAVE):
 
     def post_process_latent(self, z):
-        return rave.blocks.unit_norm_vector_to_angles(z)
+        return raveish.blocks.unit_norm_vector_to_angles(z)
 
     def pre_process_latent(self, z):
-        return rave.blocks.angles_to_unit_norm_vector(z)
+        return raveish.blocks.angles_to_unit_norm_vector(z)
 
 
 class TraceModel(nn.Module):
-    def __init__(self, pretrained: prior.Prior, model: rave.RAVE):
+    def __init__(self, pretrained: prior.Prior, model: raveish.RAVE):
         super().__init__()
         pretrained._jit_is_scripting = True
         self.pretrained = pretrained
@@ -495,13 +495,13 @@ def main(argv):
 
     logging.info("building rave")
 
-    config_file = rave.core.search_for_config(FLAGS.run)
+    config_file = raveish.core.search_for_config(FLAGS.run)
     if config_file is None:
         print('Config file not found in %s'%FLAGS.run)
     gin.parse_config_file(config_file)
-    FLAGS.run = rave.core.search_for_run(FLAGS.run)
+    FLAGS.run = raveish.core.search_for_run(FLAGS.run)
 
-    pretrained = rave.RAVE()
+    pretrained = raveish.RAVE()
     if FLAGS.run is not None:
         logging.info('model found : %s'%FLAGS.run)
         checkpoint = torch.load(FLAGS.run, map_location='cpu')
@@ -520,13 +520,13 @@ def main(argv):
         exit()
     pretrained.eval()
 
-    if isinstance(pretrained.encoder, rave.blocks.VariationalEncoder):
+    if isinstance(pretrained.encoder, raveish.blocks.VariationalEncoder):
         script_class = VariationalScriptedRAVE
-    elif isinstance(pretrained.encoder, rave.blocks.DiscreteEncoder):
+    elif isinstance(pretrained.encoder, raveish.blocks.DiscreteEncoder):
         script_class = DiscreteScriptedRAVE
-    elif isinstance(pretrained.encoder, rave.blocks.WasserteinEncoder):
+    elif isinstance(pretrained.encoder, raveish.blocks.WasserteinEncoder):
         script_class = WasserteinScriptedRAVE
-    elif isinstance(pretrained.encoder, rave.blocks.SphericalEncoder):
+    elif isinstance(pretrained.encoder, raveish.blocks.SphericalEncoder):
         script_class = SphericalScriptedRAVE
     else:
         raise ValueError(f"Encoder type {type(pretrained.encoder)} "
@@ -544,14 +544,14 @@ def main(argv):
     prior_scripted=None
     if FLAGS.prior is not None:
         logging.info("loading prior from checkpoint")
-        prior_config_file = rave.core.search_for_config(FLAGS.prior)
+        prior_config_file = raveish.core.search_for_config(FLAGS.prior)
         if prior_config_file is None:
             print('Config file for prior not found in %s'%FLAGS.prior)
         else:
             gin.clear_config()
             logging.info("prior config file : ", prior_config_file)
             gin.parse_config_file(prior_config_file)
-            PRIOR = rave.core.search_for_run(FLAGS.prior)
+            PRIOR = raveish.core.search_for_run(FLAGS.prior)
             logging.info(f"using prior model at {PRIOR}")
             prior_class = get_prior_class_from_config()
             prior_pretrained = getattr(prior, prior_class)(pretrained_vae=pretrained, n_channels=pretrained.n_channels)
